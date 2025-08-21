@@ -1,68 +1,148 @@
-import 'package:flutter/material.dart';
-// biblioteca instalada no pubspec (flutter pub add nome_da_biblioteca)
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-import 'config_page.dart';
+import 'package:flutter/material.dart';
+import "package:http/http.dart" as http;
 
-void main() {
-  runApp(MyApp());
+void main(){
+  runApp(MaterialApp(home: TarefasPage(),));
 }
 
-class MyApp extends StatefulWidget {
+class TarefasPage extends StatefulWidget{
+  //construtor
+  const TarefasPage({super.key});
+
   @override
   State<StatefulWidget> createState() {
-    return _MyAppState();
+    return _TarefasPageState();
   }
 }
 
-class _MyAppState extends State<MyApp> {
+class _TarefasPageState extends State<TarefasPage>{
   //atributos
-  bool temaEscuro = false;
-  String nomeUsuario = "";
+  List<Map<String,dynamic>> tarefas = [];
+  final TextEditingController _tarefaController = TextEditingController();
+  //endereço da API (json-Server do Computador)
+  final String baseUrl = "http://10.109.197.10:3000/tarefas";
 
-  // para carregar informações no começo da aplicação
   @override
   void initState() {
     super.initState();
-    carregarPreferencias();
+    _carregarTarefas();
   }
 
-  // métodos async -> não travar aplicação enquanto carregam as informações de uma Base de Dados
-  void carregarPreferencias() async {
-    //conexão com o cache para pegar informações armazenadas pelo usuário
-    final prefs = await SharedPreferences.getInstance();
-    //armazenando em um texto as configurações salvas
-    String? jsonString = prefs.getString('config');
-    if (jsonString != null) {
-      //converter o texto/Json em Map/Dart
-      Map<String, dynamic> config = json.decode(jsonString);
-      // chama a mudança de estado
-      setState(() {
-        // atribui a bool o valor da chave TemaEscuro, caso null atribui falso
-        temaEscuro = config["temaEscuro"] ?? false;
-        nomeUsuario = config["nome"] ?? "";
-      });
+  void _carregarTarefas() async{
+    try {
+      // fazer a conexão HTTP ( instalação da biblioteca http)
+      // fazendo uma solicitação get para o endereço da API (converter Str -> URL)
+      final response = await http.get(Uri.parse(baseUrl));
+      if (response.statusCode == 200){
+        //decodificando para Map
+        List<dynamic> dados = json.decode(response.body);
+        setState(() {
+          //tarefas = dados.map((item) => Map<String, dynamic>.from(item)).toList();
+          tarefas = dados.cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (e) {
+      print("Erro ao Adiconar Tarefa $e");
     }
-  } // fim do método
+  }
 
-  // método build
+  void _removerTarefa(String id) async{
+    try {
+      //solicita http delete
+      final response = await http.delete(Uri.parse("$baseUrl/$id"));
+      if(response.statusCode == 200){
+        _carregarTarefas();
+      }
+    } catch (e) {
+      print("Erro ao Deletar Tarefa $e");
+    }
+  }
+
+  void _adicionarTarefa(String titulo) async{
+    try {
+      final tarefa = {"titulo":titulo, "concluida": false};
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        headers: {"Content-type":"application/json"},
+        body: json.encode(tarefa)
+      );
+      if (response.statusCode == 201){
+        _tarefaController.clear();
+        _carregarTarefas();
+      }
+    } catch (e) {
+      print("Erro ao adicionar tarefa $e");
+      
+    }
+  }
+
+  //Update da Tarefa
+  void _updateTarefa(String id, bool concluida) async{
+    try {
+      final tarefa = {"concluida":!concluida};
+      final response = await http.patch(
+        Uri.parse("$baseUrl/$id"),
+        headers: {"Content-Type":"application/json"},
+        body: json.encode(tarefa)
+      );
+      if (response.statusCode == 200)
+        setState(() {
+          _carregarTarefas();
+        });
+     
+    } catch (e) {
+      print("Erro ao atualizar Tarefa $e");
+    }
+  }
+
+
+  //build da Tela
   @override
   Widget build(BuildContext context) {
-    return(MaterialApp(
-      title: "App de Configuração",
-      // operador Ternário (if else encurtado)
-      theme: temaEscuro ? ThemeData.dark() : ThemeData.light(),
-      home: ConfigPage(
-        temaEscuro: temaEscuro,
-        nomeUsuario: nomeUsuario,
-        onSalvar: (bool novoTema, String novoNome){
-          setState(() {
-            temaEscuro = novoTema;
-            nomeUsuario = novoNome;
-          });
-        }
+    return Scaffold(
+      appBar: AppBar(title: Text("Tarefas via API"),),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _tarefaController,
+              decoration: InputDecoration(
+                labelText: "Nova Tarefa",
+                border: OutlineInputBorder()),
+              //envia a tarefa ao apertar enter
+              onSubmitted: _adicionarTarefa,
+            ),
+            SizedBox(height: 12,),
+            Divider(),
+            Expanded(
+              //operador ternário
+              child: tarefas.isEmpty ?
+              Center(child: Text("Nenhuma Tarefa"),) :
+              ListView.builder(
+                itemCount: tarefas.length,
+                itemBuilder: (_,index){
+                  final tarefa = tarefas[index];
+                  return ListTile(
+                    leading: Checkbox(
+                      value: tarefa["concluida"], 
+                      onChanged: (value) { _updateTarefa(tarefa["id"], tarefa["concluida"]);}
+                      ),
+                    title: Text(tarefa["titulo"]),
+                    subtitle: Text(tarefa["concluida"] ? "Concluída" : "Pendente"),
+                    trailing: IconButton(
+                      onPressed: () => _removerTarefa(tarefa["id"]), 
+                      icon: Icon(Icons.delete)),
+                  );
+                })
+            )
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
+
+ flutter create json_web_service_clima --platform=android --empty
