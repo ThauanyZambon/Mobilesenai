@@ -1,22 +1,26 @@
-class ClimaModel {
+class UserModel {
   //atributos
-  final String cidade;
-  final double temperatura;
-  final String descricao;
-
+  final String? id; // pode ser nulo inicialmente
+  final String name;
+  final String email;
   //construtor
-  ClimaModel({
-    required this.cidade,
-    required this.temperatura,
-    required this.descricao
+  UserModel({
+    this.id,
+    required this.name,
+    required this.email
   });
 
-  // toJson e (FromJson)
-  //forma diferente de fazer um construtor
-  factory ClimaModel.fromJson(Map<String,dynamic> json){
-    return ClimaModel(
-      cidade: json["name"], // pega o nome da Cidade
-      temperatura: json["main"]["temp"].toDouble(), // pega temperatura
-      descricao: json["weather"][0]["description"]); // descrição do clima
-  }
+  //métodos
+  //toJson => OBJ => MAP
+  Map<String,dynamic> toJson() => {
+    "id":id,
+    "name":name,
+    "email":email
+    };
+
+  //fromJson MAP => OBJ
+  factory UserModel.fromJson(Map<String,dynamic> json) => UserModel(
+    id: json["id"].toString(),
+    name: json["name"].toString(), 
+    email: json["email"].toString());
 }

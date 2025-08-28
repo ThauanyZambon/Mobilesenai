@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:json_web_service_clima/controllrs/clima_controller.dart';
-import 'package:json_web_service_clima/models/clima_model.dart';
+import 'package:json_web_service_clima/controllers/user_controller.dart';
+import 'package:json_web_service_clima/models/user_model.dart';
 
 class ClimaView extends StatefulWidget {
   const ClimaView({super.key});

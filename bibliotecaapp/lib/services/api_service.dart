@@ -6,7 +6,7 @@ class ApiService {
   // base URL para Conexão com API
   static const String _baseURL = "http://10.109.197.193011";
 
-  // métodos
+  // métodos da classe e nao do obj => instanciar obj
   //GET (Listar todos os Recurso)
   static Future<List<dynamic>> getList(String path) async{
     final res = await http.get(Uri.parse("$_baseURL/$path"));
