@@ -1,26 +1,25 @@
-class UserModel {
+class Usuario {
   //atributos
-  final String? id; // pode ser nulo inicialmente
-  final String name;
+
+  final String? id; //pode ser nulo inicialmente -> id será atribuido pelo bd
+  final String nome;
   final String email;
+
   //construtor
-  UserModel({
-    this.id,
-    required this.name,
-    required this.email
-  });
+  Usuario({this.id, required this.nome, required this.email});
 
-  //métodos
-  //toJson
+  //métodos 
+  //ToJson Obj => Map(Json)
   Map<String,dynamic> toJson() => {
-    "id":id,
-    "name":name,
-    "email":email
-    };
-
-  //fromJson
-  factory UserModel.fromJson(Map<String,dynamic> json) => UserModel(
+    "id": id,
+    "nome": nome,
+    "email": email
+  };
+  //FromJson Json(Map) => Obj
+  factory Usuario.fromJson(Map<String,dynamic> json) =>
+  Usuario(
     id: json["id"].toString(),
-    name: json["name"].toString(), 
-    email: json["email"].toString());
+    nome: json["nome"].toString(),
+    email: json["email"].toString(),
+  );
 }

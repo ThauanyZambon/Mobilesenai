@@ -1,41 +1,44 @@
-import 'package:biblioteca_app/models/user_model.dart';
-import 'package:biblioteca_app/services/api_service.dart';
+import 'package:bibliotecaapp/models/user_model.dart';
+import 'package:bibliotecaapp/services/api_service.dart';
 
-class UserControler {
-
-  //métodos
-  // GET dos Usuários
-  Future<List<UserModel>> fetchAll() async{
+class UserController {
+  // GET -> Buscar todos os usuários
+  Future<List<UserController>> fetchAll() async {
     final list = await ApiService.getList("users?_sort=name");
-    //retorna a Lista de Usuário Convertidas para User Model
-    return list.map<UserModel>((item)=>UserModel.fromJson(item)).toList();
+    // Retorna a lista convertida para objetos UserModel
+    return list.map<UserController>((item) => UserController.fromJson(item)).toList();
   }
 
   // POST -> Criar novo usuário
-  Future<UserModel> create(UserModel u) async{
-    final created  = await ApiService.post("users", u.toJson());
-    // adiciona um Usuário e Retorna o Usuário Criado -> ID
-    return UserModel.fromJson(created);
+  Future<UserController> create(UserController u) async {
+    final created = await ApiService.post("users", UserController.fromJson());
+    // Retorna o usuário criado com ID
+    return UserController.fromJson(created);
   }
 
-  // GET -> Buscar um Usuário
-  Future<UserModel> fetchOne(String id) async{
+  // GET -> Buscar um usuário pelo ID
+  Future<UserController> fetchOne(String id) async {
     final user = await ApiService.getOne("users", id);
-    // Retorna o Usuário Encontrado no Banco de Dados
-    return UserModel.fromJson(user);
+    // Retorna o usuário encontrado
+    return UserController.fromJson(user);
   }
 
-  // PUT -> Atualizar Usuário
-  Future<UserModel> update(UserModel u) async{
+  // PUT -> Atualizar usuário
+  Future<UserController> update(UserController u) async {
     final updated = await ApiService.put("users", u.toJson(), u.id!);
-    //REtorna o Usuário Atualizado
-    return UserModel.fromJson(updated);
+    // Retorna o usuário atualizado
+    return UserController.fromJson(updated);
   }
 
-  Future<void> delete(String id) async{
+  // DELETE -> Deletar usuário
+  Future<void> delete(String id) async {
     await ApiService.delete("users", id);
-    // Não há retorno, usuário deletado com sucesso
+    // Não há retorno; usuário deletado com sucesso
   }
-
-
+  
+  static fromJson(Map<String, dynamic> updated) async {}
+  
+  Map<String, dynamic> toJson() {
+    throw UnimplementedError('toJson() has not been implemented.');
+  }
 }
